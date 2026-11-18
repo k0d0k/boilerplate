@@ -1,0 +1,23 @@
+{
+    "name": "DemoShowcase",
+    "alias": "demomodule",
+    "description": "Phase 1B-4 non-clinical demonstration module proving module registration and the server-side FeatureGate.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\DemoShowcase\\Providers\\DemoShowcaseServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "demo.showcase",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": ["clinic"],
+        "filament_registration": "Modules\\DemoShowcase\\Filament\\DemoShowcaseRegistration",
+        "requires": [],
+        "permissions": ["tenant.profile.manage"],
+        "translation_locales": ["id", "ms-MY", "en"],
+        "scope": ["tenant"],
+        "requires_subscription": false
+    }
+}

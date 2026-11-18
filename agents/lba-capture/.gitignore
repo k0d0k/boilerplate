@@ -1,0 +1,9 @@
+# Agent runtime / build artifacts — never commit these.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/

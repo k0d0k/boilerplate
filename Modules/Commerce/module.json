@@ -1,0 +1,23 @@
+{
+    "name": "Commerce",
+    "alias": "commerce",
+    "description": "WS3 — multi-brand product catalog, tenant/branch inventory, cart & checkout, clinic POS, orders, invoices and refunds.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Commerce\\Providers\\CommerceServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "commerce",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": ["clinic"],
+        "filament_registration": "Modules\\Commerce\\Filament\\CommerceRegistration",
+        "requires": ["platform.tenancy", "platform.authorization"],
+        "permissions": ["commerce.manage", "order.manage"],
+        "translation_locales": ["id", "ms-MY", "en"],
+        "scope": ["tenant"],
+        "requires_subscription": false
+    }
+}

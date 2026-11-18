@@ -1,0 +1,1537 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../vendor/filament/*/resources/views/**/*.blade.php';
+
+/*
+|--------------------------------------------------------------------------
+| LBA Cloud design tokens
+|--------------------------------------------------------------------------
+| Shared premium foundation for the principal, clinic and patient panels.
+| Values mirror docs/DESIGN_SYSTEM.md.
+*/
+@theme {
+    --color-lba-navy: #14263d;
+    --color-lba-teal: #087f80;
+    --color-lba-canvas: #f6f8fb;
+    --color-lba-workspace: #0c1725;
+    --color-lba-card: #ffffff;
+
+    --radius-lba: 0.75rem;
+}
+
+@layer components {
+    /* ---------------------------------------------------------------
+     | Premium split login (all three panels)
+     | --------------------------------------------------------------- */
+
+    .lba-auth-body {
+        background-color: var(--color-lba-canvas);
+    }
+
+    .lba-auth {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 100dvh;
+    }
+
+    @media (min-width: 1024px) {
+        .lba-auth {
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        }
+    }
+
+    /* Left: navy brand panel --------------------------------------- */
+    .lba-auth__aside {
+        position: relative;
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 2.5rem;
+        overflow: hidden;
+        padding: 3rem;
+        background-color: var(--color-lba-navy);
+        background-image:
+            radial-gradient(120% 90% at 100% 100%, rgba(8, 127, 128, 0.35) 0%, rgba(8, 127, 128, 0) 55%),
+            radial-gradient(90% 70% at 0% 0%, rgba(8, 127, 128, 0.18) 0%, rgba(8, 127, 128, 0) 60%);
+        color: #ffffff;
+    }
+
+    @media (min-width: 1024px) {
+        .lba-auth__aside {
+            display: flex;
+        }
+    }
+
+    .lba-auth__motif {
+        position: absolute;
+        right: -7rem;
+        bottom: -6rem;
+        width: 30rem;
+        height: 30rem;
+        color: #7fe3e0;
+        pointer-events: none;
+    }
+
+    .lba-auth__brand {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .lba-auth__brand-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        color: #7fe3e0;
+    }
+
+    .lba-auth__brand-mark svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .lba-auth__brand-name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+    }
+
+    .lba-auth__pitch {
+        position: relative;
+        z-index: 1;
+        max-width: 30rem;
+    }
+
+    .lba-auth__headline {
+        font-size: 2.375rem;
+        line-height: 1.15;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+    }
+
+    .lba-auth__headline span {
+        color: #7fe3e0;
+    }
+
+    .lba-auth__subtitle {
+        margin-top: 1.25rem;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.76);
+    }
+
+    .lba-auth__footnote {
+        position: relative;
+        z-index: 1;
+        font-size: 0.75rem;
+        letter-spacing: 0.01em;
+        color: rgba(255, 255, 255, 0.52);
+    }
+
+    /* Right: light form panel -------------------------------------- */
+    .lba-auth__main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 2.5rem 1.25rem;
+        background-color: var(--color-lba-canvas);
+    }
+
+    .lba-auth__card {
+        position: relative;
+        width: 100%;
+        max-width: 26rem;
+        padding: 2.25rem 1.75rem;
+        border: 1px solid rgba(20, 38, 61, 0.08);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow:
+            0 1px 2px rgba(20, 38, 61, 0.04),
+            0 16px 40px -20px rgba(20, 38, 61, 0.28);
+    }
+
+    @media (min-width: 640px) {
+        .lba-auth__card {
+            padding: 2.5rem;
+        }
+    }
+
+    .lba-auth__mobile-brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        margin-bottom: 1.75rem;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-auth__mobile-brand .lba-auth__brand-mark {
+        color: var(--color-lba-teal);
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    @media (min-width: 1024px) {
+        .lba-auth__mobile-brand {
+            display: none;
+        }
+    }
+
+    .lba-auth__legal {
+        font-size: 0.75rem;
+        color: rgba(20, 38, 61, 0.5);
+        text-align: center;
+    }
+
+    /* Filament form refinements inside the card -------------------- */
+    .lba-auth__card .fi-simple-page-content {
+        gap-y: 1.75rem;
+    }
+
+    .lba-auth__card .fi-simple-header {
+        align-items: flex-start;
+    }
+
+    .lba-auth__card .fi-simple-header-heading {
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-align: left;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-auth__card .fi-simple-header-subheading {
+        margin-top: 0.5rem;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        text-align: left;
+        color: #55617a;
+    }
+
+    .lba-auth__card .fi-input-wrp {
+        border-radius: 0.625rem;
+    }
+
+    .lba-auth__card .fi-ac {
+        margin-top: 0.25rem;
+    }
+
+    .lba-auth__card .fi-btn {
+        border-radius: 0.625rem;
+        min-height: 2.75rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Primary call-to-action
+|--------------------------------------------------------------------------
+| Filament derives button colours from its WCAG contrast resolver, which
+| classifies the LBA teal as a low-chroma "soft" palette and therefore emits
+| a pale, low-emphasis button. The approved LBA Cloud prototype uses a solid
+| teal primary action, so the fill is pinned explicitly here. This lives in
+| the `utilities` layer so it wins over Filament's own `fi-bg-color-*` helpers.
+| Contrast remains WCAG AA: #087F80 on white = 4.82:1.
+*/
+@layer utilities {
+    .lba-auth__card .fi-btn {
+        background-color: var(--color-lba-teal);
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .lba-auth__card .fi-btn:hover {
+        background-color: #076b6c;
+    }
+
+    .lba-auth__card .fi-btn:active {
+        background-color: #065a5b;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Premium application shell
+|--------------------------------------------------------------------------
+| Filament's own component stylesheet paints the desktop sidebar white
+| (`lg:bg-transparent`) and uses gray-on-white navigation tokens, so the LBA
+| navy navigation, teal active state and light canvas have to be re-declared.
+| These rules sit in the `utilities` layer because that layer is emitted after
+| Filament's `components` layer and therefore wins without `!important`.
+*/
+@layer utilities {
+    /* Canvas + page surface ---------------------------------------- */
+    .fi-body {
+        background-color: var(--color-lba-canvas);
+    }
+
+    /* Sidebar: navy surface ---------------------------------------- */
+    .fi-sidebar {
+        background-color: var(--color-lba-navy);
+        --lba-sidebar-fg: rgba(255, 255, 255, 0.82);
+        --lba-sidebar-muted: rgba(255, 255, 255, 0.55);
+        --lba-sidebar-hover: rgba(255, 255, 255, 0.08);
+        --lba-sidebar-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .fi-sidebar .fi-sidebar-header {
+        background-color: transparent;
+        box-shadow: none;
+    }
+
+    .fi-sidebar .fi-sidebar-header .fi-logo {
+        color: #ffffff;
+    }
+
+    /* Group headers ------------------------------------------------- */
+    .fi-sidebar .fi-sidebar-group-label {
+        color: var(--lba-sidebar-muted);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .fi-sidebar .fi-sidebar-group-btn .fi-icon {
+        color: var(--lba-sidebar-muted);
+    }
+
+    .fi-sidebar .fi-sidebar-group-dropdown-trigger-btn {
+        color: var(--lba-sidebar-fg);
+    }
+
+    .fi-sidebar .fi-sidebar-group-dropdown-trigger-btn:hover,
+    .fi-sidebar .fi-sidebar-group-dropdown-trigger-btn:focus-visible {
+        background-color: var(--lba-sidebar-hover);
+    }
+
+    /* Navigation items --------------------------------------------- */
+    .fi-sidebar .fi-sidebar-item-btn > .fi-icon {
+        color: rgba(255, 255, 255, 0.62);
+    }
+
+    .fi-sidebar .fi-sidebar-item-label {
+        color: var(--lba-sidebar-fg);
+    }
+
+    .fi-sidebar .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover,
+    .fi-sidebar .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:focus-visible {
+        background-color: var(--lba-sidebar-hover);
+    }
+
+    /* Active item: tasteful teal accent ---------------------------- */
+    .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+        background-color: rgba(8, 127, 128, 0.22);
+    }
+
+    .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-icon,
+    .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label {
+        color: #7fe3e0;
+    }
+
+    /* Non-interactive preview labels for future modules ------------ */
+    /* These labels carry no <a>/href (see resources/views/filament/lba/
+       navigation/preview-group.blade.php) and must never look actionable. */
+    .fi-sidebar .lba-preview-item__btn,
+    .fi-sidebar .lba-preview-group__heading {
+        cursor: default;
+    }
+
+    .fi-sidebar .lba-preview-item__btn > .fi-icon,
+    .fi-sidebar .lba-preview-item__btn > .fi-sidebar-item-label {
+        color: rgba(255, 255, 255, 0.42);
+    }
+
+    .fi-sidebar .lba-preview-item__btn:hover,
+    .fi-sidebar .lba-preview-item__btn:focus-visible {
+        background-color: transparent;
+    }
+
+    /* Collapsed rail: keep parity with native groups (icon only). */
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) .lba-preview-group__heading,
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) .lba-preview-item__btn > .fi-sidebar-item-label {
+        display: none;
+    }
+
+    /* Footer + user menu -------------------------------------------- */
+    .fi-sidebar .fi-user-menu-trigger {
+        color: var(--lba-sidebar-fg);
+    }
+
+    .fi-sidebar .fi-user-menu-trigger:hover,
+    .fi-sidebar .fi-user-menu-trigger:focus-visible {
+        background-color: var(--lba-sidebar-hover);
+    }
+
+    .fi-sidebar .fi-sidebar-footer {
+        border-top-color: var(--lba-sidebar-border);
+    }
+
+    /* Topbar -------------------------------------------------------- */
+    .fi-topbar {
+        background-color: #ffffff;
+        box-shadow: 0 1px 0 0 rgba(20, 38, 61, 0.06);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard components (shared by principal, clinic and patient)
+|--------------------------------------------------------------------------
+| The reusable Blade widgets under resources/views/filament/lba/widgets are
+| the only consumers of these classes, so every panel inherits one spacing
+| rhythm, one card treatment and one typographic scale.
+*/
+@layer components {
+    /* Hero band ----------------------------------------------------- */
+    .lba-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 1.75rem;
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-navy);
+        background-image:
+            radial-gradient(120% 150% at 100% 0%, rgba(8, 127, 128, 0.5) 0%, rgba(8, 127, 128, 0) 55%),
+            linear-gradient(135deg, var(--color-lba-navy) 55%, var(--color-lba-workspace) 100%);
+        color: #ffffff;
+        box-shadow:
+            0 1px 2px rgba(20, 38, 61, 0.06),
+            0 22px 48px -28px rgba(20, 38, 61, 0.6);
+    }
+
+    @media (min-width: 768px) {
+        .lba-hero {
+            padding: 2.25rem 2.5rem;
+        }
+    }
+
+    .lba-hero__glow {
+        position: absolute;
+        top: -6rem;
+        right: -4rem;
+        width: 18rem;
+        height: 18rem;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(127, 227, 224, 0.28) 0%, rgba(127, 227, 224, 0) 70%);
+        pointer-events: none;
+    }
+
+    .lba-hero__body {
+        position: relative;
+        z-index: 1;
+        max-width: 48rem;
+    }
+
+    .lba-hero__eyebrow {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #7fe3e0;
+    }
+
+    .lba-hero__greeting {
+        margin-top: 0.75rem;
+        font-size: 0.9375rem;
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    .lba-hero__title {
+        margin-top: 0.25rem;
+        font-size: 1.75rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        color: #ffffff;
+    }
+
+    @media (min-width: 768px) {
+        .lba-hero__title {
+            font-size: 2.125rem;
+        }
+    }
+
+    .lba-hero__subtitle {
+        margin-top: 0.75rem;
+        font-size: 1rem;
+        line-height: 1.65;
+        color: rgba(255, 255, 255, 0.76);
+    }
+
+    .lba-hero__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.25rem;
+        padding: 0;
+        list-style: none;
+    }
+
+    .lba-hero__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        background-color: rgba(255, 255, 255, 0.08);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.88);
+    }
+
+    .lba-hero__chip--navy {
+        border-color: rgba(127, 227, 224, 0.35);
+        background-color: rgba(8, 127, 128, 0.22);
+    }
+
+    .lba-hero__chip--slate {
+        background-color: rgba(255, 255, 255, 0.07);
+    }
+
+    .lba-hero__chip-dot {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 999px;
+        background-color: #7fe3e0;
+    }
+
+    .lba-hero__note {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.55);
+    }
+
+    .lba-hero__note-icon {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+        margin-top: 0.0625rem;
+    }
+
+    /* Card shell ---------------------------------------------------- */
+    .lba-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid rgba(20, 38, 61, 0.08);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow: 0 1px 2px rgba(20, 38, 61, 0.04);
+    }
+
+    .lba-card__header {
+        padding: 1.25rem 1.25rem 0;
+    }
+
+    .lba-card__title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-card__description {
+        margin-top: 0.25rem;
+        font-size: 0.8125rem;
+        color: #55617a;
+    }
+
+    .lba-card__body {
+        flex: 1;
+        padding: 1.25rem;
+    }
+
+    .lba-card__note {
+        margin: 0 1.25rem 1.25rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed rgba(20, 38, 61, 0.12);
+        font-size: 0.75rem;
+        color: #7a8699;
+    }
+
+    /* Activity / status list --------------------------------------- */
+    .lba-list {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .lba-list__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(20, 38, 61, 0.06);
+    }
+
+    .lba-list__item:first-child {
+        padding-top: 0;
+    }
+
+    .lba-list__item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .lba-list__main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .lba-list__title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+        overflow-wrap: anywhere;
+    }
+
+    .lba-list__subtitle {
+        margin-top: 0.125rem;
+        font-size: 0.8125rem;
+        color: #6b7688;
+        overflow-wrap: anywhere;
+    }
+
+    .lba-list__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        flex-shrink: 0;
+    }
+
+    .lba-list__time {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        color: #8792a5;
+    }
+
+    /* Breakdown bars ------------------------------------------------ */
+    .lba-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .lba-breakdown__top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .lba-breakdown__label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-breakdown__value {
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: #0f766e;
+    }
+
+    .lba-breakdown__track {
+        margin-top: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        background-color: rgba(20, 38, 61, 0.08);
+        overflow: hidden;
+    }
+
+    .lba-breakdown__fill {
+        display: block;
+        width: var(--lba-bar, 0%);
+        height: 100%;
+        border-radius: 999px;
+        background-color: var(--color-lba-teal);
+        transition: width 0.35s ease;
+    }
+
+    .lba-breakdown__fill--teal {
+        background-color: var(--color-lba-teal);
+    }
+
+    .lba-breakdown__fill--navy {
+        background-color: var(--color-lba-navy);
+    }
+
+    .lba-breakdown__fill--amber {
+        background-color: #d97706;
+    }
+
+    .lba-breakdown__fill--rose {
+        background-color: #e11d48;
+    }
+
+    .lba-breakdown__fill--slate {
+        background-color: #64748b;
+    }
+
+    /* Metric (balance / summary) ----------------------------------- */
+    .lba-metric {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .lba-metric__primary-label,
+    .lba-metric__secondary-label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #6b7688;
+    }
+
+    .lba-metric__primary-value {
+        margin-top: 0.25rem;
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-metric__secondary-value {
+        margin-top: 0.25rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-metric__unit {
+        margin-left: 0.375rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #8792a5;
+    }
+
+    .lba-metric__track {
+        height: 0.5rem;
+        border-radius: 999px;
+        background-color: rgba(20, 38, 61, 0.08);
+        overflow: hidden;
+    }
+
+    .lba-metric__fill {
+        display: block;
+        width: var(--lba-bar, 0%);
+        height: 100%;
+        border-radius: 999px;
+        background-image: linear-gradient(90deg, var(--color-lba-teal), #0aa5a6);
+        transition: width 0.35s ease;
+    }
+
+    .lba-metric__progress-label {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: #6b7688;
+    }
+
+    /* Tile list (cards variant) ------------------------------------ */
+    .lba-tiles {
+        display: grid;
+        gap: 0.75rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .lba-tile {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.875rem;
+        border: 1px solid rgba(20, 38, 61, 0.07);
+        border-radius: 0.75rem;
+        background-color: #fbfcfe;
+    }
+
+    .lba-tile__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        flex-shrink: 0;
+        border-radius: 0.625rem;
+        background-color: rgba(8, 127, 128, 0.12);
+        color: var(--color-lba-teal);
+    }
+
+    .lba-tile__icon svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .lba-tile__text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .lba-tile__title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-tile__subtitle {
+        margin-top: 0.125rem;
+        font-size: 0.8125rem;
+        color: #6b7688;
+    }
+
+    /* Badges -------------------------------------------------------- */
+    .lba-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.1875rem 0.625rem;
+        border-radius: 999px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+    }
+
+    .lba-badge--teal {
+        background-color: rgba(8, 127, 128, 0.12);
+        color: #0b6a6b;
+    }
+
+    .lba-badge--navy {
+        background-color: rgba(20, 38, 61, 0.09);
+        color: #25384f;
+    }
+
+    .lba-badge--amber {
+        background-color: rgba(217, 119, 6, 0.14);
+        color: #b45309;
+    }
+
+    .lba-badge--rose {
+        background-color: rgba(225, 29, 72, 0.12);
+        color: #be123c;
+    }
+
+    .lba-badge--slate {
+        background-color: rgba(100, 116, 139, 0.14);
+        color: #475569;
+    }
+
+    /* Chart card refinement ---------------------------------------- */
+    .fi-wi-chart .fi-section {
+        height: 100%;
+    }
+
+    /* KPI strip refinement ----------------------------------------- */
+    .fi-wi-stats-overview-stat {
+        border-radius: var(--radius-lba);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Tenant context switcher (Phase 1B-2B, Clinic panel only)
+|--------------------------------------------------------------------------
+| The verified tenant identity chip and its searchable dropdown, plus the
+| "Pilih Mitra" selection screen. Uses the shared navy/teal tokens so the
+| switcher feels native to the approved premium shell.
+*/
+@layer components {
+    .lba-tenant {
+        display: flex;
+        align-items: center;
+    }
+
+    .lba-tenant__wrap {
+        position: relative;
+    }
+
+    .lba-tenant__trigger,
+    .lba-tenant__static {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 15rem;
+        padding: 0.375rem 0.625rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: 999px;
+        background-color: #ffffff;
+        color: var(--color-lba-navy);
+        text-align: left;
+    }
+
+    .lba-tenant__trigger {
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .lba-tenant__trigger:hover,
+    .lba-tenant__trigger:focus-visible {
+        border-color: rgba(8, 127, 128, 0.4);
+        background-color: rgba(8, 127, 128, 0.06);
+    }
+
+    .lba-tenant__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+        border-radius: 999px;
+        background-color: rgba(8, 127, 128, 0.12);
+        color: var(--color-lba-teal);
+    }
+
+    .lba-tenant__mark svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .lba-tenant__text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    .lba-tenant__name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lba-tenant__brand {
+        display: none;
+        font-size: 0.6875rem;
+        color: #6b7688;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lba-tenant__chevron {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: #8792a5;
+    }
+
+    .lba-tenant__chevron svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Dropdown ------------------------------------------------------ */
+    .lba-tenant__panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        z-index: 40;
+        width: min(20rem, calc(100vw - 2rem));
+        padding: 0.5rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow:
+            0 1px 2px rgba(20, 38, 61, 0.05),
+            0 18px 44px -22px rgba(20, 38, 61, 0.4);
+    }
+
+    .lba-tenant__search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid rgba(20, 38, 61, 0.12);
+        border-radius: 0.625rem;
+        color: #8792a5;
+    }
+
+    .lba-tenant__search svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+
+    .lba-tenant__search-input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 0.875rem;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-tenant__list {
+        margin: 0.5rem 0 0;
+        padding: 0;
+        max-height: 17rem;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    .lba-tenant__option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 0;
+        border-radius: 0.625rem;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .lba-tenant__option:hover,
+    .lba-tenant__option:focus-visible {
+        background-color: rgba(8, 127, 128, 0.08);
+    }
+
+    .lba-tenant__option.is-current {
+        background-color: rgba(8, 127, 128, 0.1);
+    }
+
+    .lba-tenant__option-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .lba-tenant__option-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-tenant__option-brand {
+        font-size: 0.75rem;
+        color: #6b7688;
+    }
+
+    .lba-tenant__option-check {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--color-lba-teal);
+    }
+
+    .lba-tenant__option-check svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .lba-tenant__empty {
+        padding: 0.75rem;
+        font-size: 0.8125rem;
+        color: #6b7688;
+        text-align: center;
+    }
+
+    /*--------------------------------------------------------------------------
+    | Branch context switcher (Phase 2B, Clinic panel only)
+    |--------------------------------------------------------------------------
+    | The verified branch identity chip, its searchable dropdown and the
+    | "create first branch" setup link. Mirrors the tenant switcher so the two
+    | chips sit together naturally in the premium topbar.
+    */
+    .lba-branch {
+        display: flex;
+        align-items: center;
+    }
+
+    .lba-branch__wrap {
+        position: relative;
+    }
+
+    .lba-branch__trigger,
+    .lba-branch__static,
+    .lba-branch__setup {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 15rem;
+        padding: 0.375rem 0.625rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: 999px;
+        background-color: #ffffff;
+        color: var(--color-lba-navy);
+        text-align: left;
+    }
+
+    .lba-branch__setup {
+        text-decoration: none;
+    }
+
+    .lba-branch__trigger {
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .lba-branch__trigger:hover,
+    .lba-branch__trigger:focus-visible,
+    .lba-branch__setup:hover,
+    .lba-branch__setup:focus-visible {
+        border-color: rgba(8, 127, 128, 0.4);
+        background-color: rgba(8, 127, 128, 0.06);
+    }
+
+    .lba-branch__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+        border-radius: 999px;
+        background-color: rgba(8, 127, 128, 0.12);
+        color: var(--color-lba-teal);
+    }
+
+    .lba-branch__mark svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .lba-branch__text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    .lba-branch__name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lba-branch__code {
+        display: none;
+        font-size: 0.6875rem;
+        color: #6b7688;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lba-branch__chevron {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: #8792a5;
+    }
+
+    .lba-branch__chevron svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Dropdown ------------------------------------------------------ */
+    .lba-branch__panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        z-index: 40;
+        width: min(20rem, calc(100vw - 2rem));
+        padding: 0.5rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow:
+            0 1px 2px rgba(20, 38, 61, 0.05),
+            0 18px 44px -22px rgba(20, 38, 61, 0.4);
+    }
+
+    .lba-branch__search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid rgba(20, 38, 61, 0.12);
+        border-radius: 0.625rem;
+        color: #8792a5;
+    }
+
+    .lba-branch__search svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+
+    .lba-branch__search-input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 0.875rem;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-branch__list {
+        margin: 0.5rem 0 0;
+        padding: 0;
+        max-height: 17rem;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    .lba-branch__option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 0;
+        border-radius: 0.625rem;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .lba-branch__option:hover,
+    .lba-branch__option:focus-visible {
+        background-color: rgba(8, 127, 128, 0.08);
+    }
+
+    .lba-branch__option.is-current {
+        background-color: rgba(8, 127, 128, 0.1);
+    }
+
+    .lba-branch__option-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .lba-branch__option-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-branch__option-code {
+        font-size: 0.75rem;
+        color: #6b7688;
+    }
+
+    .lba-branch__option-check {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--color-lba-teal);
+    }
+
+    .lba-branch__option-check svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .lba-branch__empty {
+        padding: 0.75rem;
+        font-size: 0.8125rem;
+        color: #6b7688;
+        text-align: center;
+    }
+
+    /* "Pilih Mitra" selection screen -------------------------------- */
+    .lba-select {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .lba-select__hero {
+        position: relative;
+        overflow: hidden;
+        padding: 1.75rem;
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-navy);
+        background-image:
+            radial-gradient(120% 150% at 100% 0%, rgba(8, 127, 128, 0.5) 0%, rgba(8, 127, 128, 0) 55%),
+            linear-gradient(135deg, var(--color-lba-navy) 55%, var(--color-lba-workspace) 100%);
+        color: #ffffff;
+        box-shadow: 0 22px 48px -28px rgba(20, 38, 61, 0.6);
+    }
+
+    .lba-select__list {
+        display: grid;
+        gap: 0.75rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @media (min-width: 768px) {
+        .lba-select__list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .lba-select__card {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        width: 100%;
+        padding: 1rem 1.125rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    .lba-select__card:hover,
+    .lba-select__card:focus-visible {
+        border-color: rgba(8, 127, 128, 0.45);
+        box-shadow: 0 16px 36px -24px rgba(20, 38, 61, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .lba-select__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+        border-radius: 0.75rem;
+        background-color: rgba(8, 127, 128, 0.12);
+        color: var(--color-lba-teal);
+    }
+
+    .lba-select__mark svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .lba-select__text {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .lba-select__name {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-select__brand {
+        margin-top: 0.125rem;
+        font-size: 0.8125rem;
+        color: #6b7688;
+    }
+
+    .lba-select__cta {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: #8792a5;
+    }
+
+    .lba-select__cta svg {
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Language selector (Phase 1B-3, all panels)
+|--------------------------------------------------------------------------
+| A single shared Livewire component rendered into every topbar via the
+| USER_MENU_BEFORE render hook. Uses the same navy/teal tokens and pill
+| geometry as the tenant switcher so it reads as native to the approved
+| shell. Purely additive: no existing rule is overridden.
+*/
+@layer components {
+    .lba-lang {
+        display: flex;
+        align-items: center;
+    }
+
+    .lba-lang__wrap {
+        position: relative;
+    }
+
+    .lba-lang__trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 15rem;
+        padding: 0.375rem 0.625rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: 999px;
+        background-color: #ffffff;
+        color: var(--color-lba-navy);
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .lba-lang__trigger:hover,
+    .lba-lang__trigger:focus-visible {
+        border-color: rgba(8, 127, 128, 0.4);
+        background-color: rgba(8, 127, 128, 0.06);
+    }
+
+    .lba-lang__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+        border-radius: 999px;
+        background-color: rgba(8, 127, 128, 0.12);
+        color: var(--color-lba-teal);
+    }
+
+    .lba-lang__mark svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .lba-lang__label {
+        display: none;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lba-lang__chevron {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: #8792a5;
+    }
+
+    .lba-lang__chevron svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Dropdown ------------------------------------------------------ */
+    .lba-lang__panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        z-index: 40;
+        width: min(16rem, calc(100vw - 2rem));
+        padding: 0.5rem;
+        border: 1px solid rgba(20, 38, 61, 0.1);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow:
+            0 1px 2px rgba(20, 38, 61, 0.05),
+            0 18px 44px -22px rgba(20, 38, 61, 0.4);
+    }
+
+    .lba-lang__list {
+        margin: 0;
+        padding: 0;
+        max-height: 17rem;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    .lba-lang__option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 0;
+        border-radius: 0.625rem;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .lba-lang__option:hover,
+    .lba-lang__option:focus-visible {
+        background-color: rgba(8, 127, 128, 0.08);
+    }
+
+    .lba-lang__option.is-current {
+        background-color: rgba(8, 127, 128, 0.1);
+    }
+
+    .lba-lang__option-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-lang__option-check {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--color-lba-teal);
+    }
+
+    .lba-lang__option-check svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+@media (min-width: 640px) {
+    /* Reveal the brand label once there is room in the topbar. */
+    .lba-tenant__brand {
+        display: block;
+    }
+
+    .lba-tenant__trigger,
+    .lba-tenant__static {
+        max-width: 18rem;
+    }
+
+    /* Branch chip: reveal the code label and widen once there is room. */
+    .lba-branch__code {
+        display: block;
+    }
+
+    .lba-branch__trigger,
+    .lba-branch__static,
+    .lba-branch__setup {
+        max-width: 18rem;
+    }
+
+    /* Reveal the active-language label once there is room in the topbar. */
+    .lba-lang__label {
+        display: inline;
+    }
+}

@@ -1,0 +1,38 @@
+{
+    "name": "Consultations",
+    "alias": "consultations",
+    "description": "Workstream 2 — tenant consultations: clinic/patient consultation management, practitioner scheduling and consultation history, and the SINA AI consultation chat.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Consultations\\Providers\\ConsultationsServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "consultations",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": [
+            "clinic",
+            "patient",
+            "principal"
+        ],
+        "filament_registration": "Modules\\Consultations\\Filament\\ConsultationsRegistration",
+        "requires": [
+            "platform.tenancy",
+            "platform.authorization"
+        ],
+        "permissions": [
+            "consultation.manage"
+        ],
+        "translation_locales": [
+            "id",
+            "ms-MY",
+            "en"
+        ],
+        "scope": [
+            "tenant"
+        ],
+        "requires_subscription": false
+    }
+}

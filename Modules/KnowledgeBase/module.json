@@ -1,0 +1,36 @@
+{
+    "name": "KnowledgeBase",
+    "alias": "knowledgebase",
+    "description": "Workstream 9 — SINA MEDCloud knowledge base: tenant- and platform-approved PDF knowledge sources, page-aware retrieval and citation-safe RAG grounding.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\KnowledgeBase\\Providers\\KnowledgeBaseServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "knowledge_base",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": [
+            "clinic"
+        ],
+        "filament_registration": "Modules\\KnowledgeBase\\Filament\\KnowledgeBaseRegistration",
+        "requires": [
+            "platform.tenancy",
+            "platform.authorization"
+        ],
+        "permissions": [
+            "knowledge.manage"
+        ],
+        "translation_locales": [
+            "id",
+            "ms-MY",
+            "en"
+        ],
+        "scope": [
+            "tenant"
+        ],
+        "requires_subscription": false
+    }
+}

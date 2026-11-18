@@ -1,0 +1,23 @@
+{
+    "name": "Practitioners",
+    "alias": "practitioners",
+    "description": "WS7.A — tenant practitioner registry: verified professional profiles, credentials, branch scope and clinical role eligibility.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Practitioners\\Providers\\PractitionersServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "practitioners",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": ["clinic"],
+        "filament_registration": "Modules\\Practitioners\\Filament\\PractitionersRegistration",
+        "requires": ["platform.tenancy", "platform.authorization"],
+        "permissions": ["practitioner.profile.read"],
+        "translation_locales": ["id", "ms-MY", "en"],
+        "scope": ["tenant"],
+        "requires_subscription": false
+    }
+}

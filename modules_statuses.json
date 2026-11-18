@@ -1,0 +1,9 @@
+{
+    "DemoShowcase": true,
+    "Patients": true,
+    "Appointments": true,
+    "Commerce": true,
+    "Consultations": true,
+    "LBA": true,
+    "KnowledgeBase": true
+}

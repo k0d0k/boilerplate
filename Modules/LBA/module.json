@@ -1,0 +1,23 @@
+{
+    "name": "LBA",
+    "alias": "lba",
+    "description": "Phase 4 — LBA examinations: private microscopy upload, manual annotations and the dark microscope workspace.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LBA\\Providers\\LbaServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "lba",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": ["clinic"],
+        "filament_registration": "Modules\\LBA\\Filament\\LbaRegistration",
+        "requires": ["platform.tenancy", "platform.authorization"],
+        "permissions": ["exam.read"],
+        "translation_locales": ["id", "ms-MY", "en"],
+        "scope": ["tenant"],
+        "requires_subscription": false
+    }
+}

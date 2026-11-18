@@ -1,0 +1,23 @@
+{
+    "name": "Patients",
+    "alias": "patients",
+    "description": "Phase 3 — tenant patient registry: patient profiles, recorded consents and a minimal audit trail.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Patients\\Providers\\PatientsServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "patients",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": ["clinic"],
+        "filament_registration": "Modules\\Patients\\Filament\\PatientsRegistration",
+        "requires": ["platform.tenancy", "platform.authorization"],
+        "permissions": ["patient.profile.read"],
+        "translation_locales": ["id", "ms-MY", "en"],
+        "scope": ["tenant"],
+        "requires_subscription": false
+    }
+}

@@ -1,0 +1,251 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../../resources/views/landing.blade.php';
+
+/*
+|--------------------------------------------------------------------------
+| LBA Cloud public design tokens
+|--------------------------------------------------------------------------
+| The public-facing entry (resources/css/app.css) is separate from the
+| Filament theme entry, so the approved brand values are declared here too.
+| They mirror resources/css/filament/lba-cloud/theme.css and
+| docs/DESIGN_SYSTEM.md exactly: one brand foundation, two build entries.
+*/
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-lba-navy: #14263d;
+    --color-lba-teal: #087f80;
+    --color-lba-teal-strong: #076b6c;
+    --color-lba-canvas: #f6f8fb;
+    --color-lba-workspace: #0c1725;
+    --color-lba-card: #ffffff;
+    --color-lba-ink: #55617a;
+    --color-lba-mist: #8792a5;
+    --color-lba-line: rgba(20, 38, 61, 0.1);
+    --color-lba-mint: #7fe3e0;
+
+    --radius-lba: 0.75rem;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        scroll-padding-top: 5rem;
+    }
+
+    body.lba-landing {
+        background-color: var(--color-lba-canvas);
+        color: var(--color-lba-navy);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .lba-landing :focus-visible {
+        outline: 2px solid var(--color-lba-teal);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+}
+
+@layer components {
+    /* Layout -------------------------------------------------------- */
+    .lba-container {
+        width: 100%;
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-inline: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .lba-container {
+            padding-inline: 2rem;
+        }
+    }
+
+    /* Typography ---------------------------------------------------- */
+    .lba-eyebrow {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--color-lba-teal);
+    }
+
+    /* Brand lock-up (matches the Filament panels) ------------------- */
+    .lba-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-brand__mark {
+        display: inline-flex;
+        width: 2rem;
+        height: 2rem;
+        color: var(--color-lba-teal);
+    }
+
+    .lba-brand__mark svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .lba-brand__name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+    }
+
+    /* Buttons ------------------------------------------------------- */
+    .lba-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 2.75rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.625rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .lba-btn--primary {
+        background-color: var(--color-lba-teal);
+        color: #ffffff;
+    }
+
+    .lba-btn--primary:hover {
+        background-color: var(--color-lba-teal-strong);
+    }
+
+    .lba-btn--outline {
+        border: 1px solid var(--color-lba-line);
+        background-color: #ffffff;
+        color: var(--color-lba-navy);
+    }
+
+    .lba-btn--outline:hover {
+        border-color: rgba(8, 127, 128, 0.4);
+        background-color: rgba(8, 127, 128, 0.06);
+    }
+
+    .lba-btn--light {
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        color: #ffffff;
+    }
+
+    .lba-btn--light:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Cards --------------------------------------------------------- */
+    .lba-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        height: 100%;
+        padding: 1.75rem;
+        border: 1px solid var(--color-lba-line);
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-card);
+        box-shadow: 0 1px 2px rgba(20, 38, 61, 0.04);
+        transition: border-color 0.15s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .lba-card:hover {
+        border-color: rgba(8, 127, 128, 0.3);
+        box-shadow: 0 20px 44px -30px rgba(20, 38, 61, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Badges -------------------------------------------------------- */
+    .lba-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.1875rem 0.625rem;
+        border-radius: 999px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    .lba-badge--available {
+        background-color: rgba(8, 127, 128, 0.12);
+        color: #0b6a6b;
+    }
+
+    .lba-badge--planned {
+        background-color: rgba(100, 116, 139, 0.14);
+        color: #475569;
+    }
+
+    /* Hero panel ---------------------------------------------------- */
+    .lba-hero-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius-lba);
+        background-color: var(--color-lba-navy);
+        background-image:
+            radial-gradient(120% 90% at 100% 100%, rgba(8, 127, 128, 0.35) 0%, rgba(8, 127, 128, 0) 55%),
+            radial-gradient(90% 70% at 0% 0%, rgba(8, 127, 128, 0.18) 0%, rgba(8, 127, 128, 0) 60%);
+        color: #ffffff;
+        box-shadow: 0 30px 60px -40px rgba(20, 38, 61, 0.7);
+    }
+
+    /* Section rhythm ------------------------------------------------ */
+    .lba-section {
+        padding-block: 4rem;
+    }
+
+    @media (min-width: 640px) {
+        .lba-section {
+            padding-block: 5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .lba-section {
+            padding-block: 6rem;
+        }
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Subtle, dependency-free reveal
+|--------------------------------------------------------------------------
+| Scroll-driven when the engine supports it, otherwise the content simply
+| renders in place. Never hides content behind JavaScript.
+*/
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        .lba-reveal {
+            animation: lba-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 26%;
+        }
+    }
+}
+
+@keyframes lba-rise {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

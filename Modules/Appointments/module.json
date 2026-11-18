@@ -1,0 +1,36 @@
+{
+    "name": "Appointments",
+    "alias": "appointments",
+    "description": "Phase 3 — tenant clinic appointments: booking, status lifecycle and double-booking prevention.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Appointments\\Providers\\AppointmentsServiceProvider"
+    ],
+    "files": [],
+    "lba": {
+        "key": "appointments",
+        "version": "1.0.0",
+        "min_platform": "3.0.0",
+        "filament_panels": [
+            "clinic"
+        ],
+        "filament_registration": "Modules\\Appointments\\Filament\\AppointmentsRegistration",
+        "requires": [
+            "platform.tenancy",
+            "platform.authorization"
+        ],
+        "permissions": [
+            "booking.read"
+        ],
+        "translation_locales": [
+            "id",
+            "ms-MY",
+            "en"
+        ],
+        "scope": [
+            "tenant"
+        ],
+        "requires_subscription": false
+    }
+}

@@ -1,0 +1,260 @@
+/* Shell adapted from TailAdmin Laravel Free (MIT), 62e7261. See LICENSE. */
+@import 'tailwindcss' source(none);
+@source '../../views/principal';
+@source '../../views/clinic/tailadmin';
+@source '../../views/components/principal';
+@source '../../views/livewire/support-tenant-banner.blade.php';
+@source '../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views';
+
+@theme {
+    --color-brand-50: #e7f6f5;
+    --color-brand-100: #c8ebea;
+    --color-brand-600: #087f80;
+    --color-brand-700: #066869;
+    --color-navy-900: #14263d;
+    --color-warning-500: #e9a23b;
+}
+
+@layer components {
+    .principal-link {
+        @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-navy-900;
+    }
+
+    .principal-link[aria-current="page"] {
+        @apply bg-brand-50 font-semibold text-brand-700;
+    }
+
+    .principal-tab {
+        @apply -mb-px inline-flex items-center gap-2 border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-900;
+    }
+
+    .principal-tab[aria-current="page"] {
+        @apply border-brand-700 font-semibold text-brand-700;
+    }
+
+    .principal-input {
+        @apply w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 focus:border-brand-600 focus:outline-2 focus:outline-brand-600;
+    }
+
+    .principal-button {
+        @apply inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
+    }
+
+    .principal-button-primary {
+        @apply border-brand-700 bg-brand-700 text-white hover:bg-brand-600;
+    }
+
+    .principal-account-button {
+        @apply inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
+    }
+
+    .principal-account-menu {
+        @apply absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg;
+    }
+
+    .principal-account-item {
+        @apply block w-full px-4 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-navy-900;
+    }
+
+    .principal-card {
+        @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .fi-btn {
+        @apply inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700;
+    }
+
+    .fi-btn svg {
+        @apply size-4;
+    }
+}
+
+/*
+ * The rules below stay OUTSIDE `@layer components` on purpose: the panel's
+ * Filament Vite theme is emitted after this file, so a layered rule of equal
+ * specificity would lose to it. Unlayered rules beat every cascade layer, which
+ * keeps the navy sidebar, the collapsed rail and the KPI accents deterministic
+ * no matter what order the browser receives the stylesheets in.
+ */
+
+/* Navy sidebar (#14263D) with the teal (#087F80) active accent. The shell only
+   adds `principal-sidebar--navy` on the Principal panel; the Clinic panel keeps
+   the plain white sidebar. */
+.principal-sidebar--navy {
+    background-color: #14263d;
+    color: rgb(255 255 255 / 0.82);
+}
+
+.principal-sidebar--navy .principal-sidebar__brand {
+    color: #fff;
+}
+
+.principal-sidebar--navy .principal-sidebar__brand span:first-child {
+    background-color: var(--color-brand-600);
+}
+
+.principal-sidebar__group {
+    color: rgb(255 255 255 / 0.5);
+}
+
+.principal-sidebar--navy .principal-link {
+    color: rgb(255 255 255 / 0.72);
+}
+
+.principal-sidebar--navy .principal-link:hover {
+    background-color: rgb(255 255 255 / 0.08);
+    color: #fff;
+}
+
+.principal-sidebar--navy .principal-link[aria-current="page"] {
+    background-color: rgb(8 127 128 / 0.24);
+    color: #7fe3e0;
+}
+
+/* Explicit, non-shrinking icon box so an icon can never inflate to the width of
+   its container when the panel theme is delayed or missing. */
+.principal-link__icon {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.principal-link__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive display for the shared shell chrome. The panel theme
+   (`theme.css`) ships its own `@layer utilities` and is emitted *after* this
+   file, so its plain `hidden` utility outranks the `lg:flex` / `lg:inline-flex`
+   utilities written here — leaving the desktop sidebar and the rail toggle at
+   `display:none` on wide screens. These unlayered rules (which beat every
+   cascade layer) pin the intended breakpoints independently of stylesheet
+   order: >=1024px shows the sidebar and the rail toggle, below it the mobile
+   drawer trigger takes over. */
+#principal-sidebar {
+    display: none;
+}
+
+[data-principal-sidebar-toggle] {
+    display: none;
+}
+
+[data-principal-account-name] {
+    display: none;
+}
+
+@media (min-width: 64rem) {
+    #principal-sidebar {
+        display: flex;
+    }
+
+    [data-principal-sidebar-toggle] {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 40rem) {
+    [data-principal-account-name] {
+        display: inline;
+    }
+}
+
+/* Collapsed desktop rail (~72px, docs/DESIGN_SYSTEM.md): the grid column
+   narrows, links centre on their icon, and the brand/group/label text is
+   visually hidden but stays in the accessibility tree so screen readers still
+   announce every entry. The mobile drawer always keeps the full label list. */
+@media (min-width: 64rem) {
+    [data-principal-shell][data-principal-collapsed] {
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+    }
+
+    [data-principal-collapsed] .principal-sidebar {
+        align-items: center;
+        padding-inline: 0.75rem;
+    }
+
+    [data-principal-collapsed] .principal-sidebar__brand {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    [data-principal-collapsed] .principal-sidebar__brand-name,
+    [data-principal-collapsed] .principal-sidebar__group,
+    [data-principal-collapsed] .principal-link__label {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    [data-principal-collapsed] .principal-link {
+        justify-content: center;
+        padding-inline: 0;
+    }
+}
+
+/* KPI accent: a coloured edge plus a matching icon tint per metric, so the four
+   dashboard cards read as Mitra (blue), Basis Data Siap (teal), Langganan Aktif
+   (purple) and Kredit AI Terpakai (amber) even without the chart legend. */
+.lba-kpi {
+    border-inline-start-width: 3px;
+    border-inline-start-style: solid;
+    border-inline-start-color: var(--color-brand-600);
+}
+
+.lba-kpi--blue {
+    border-inline-start-color: #2563eb;
+}
+
+.lba-kpi--teal {
+    border-inline-start-color: #087f80;
+}
+
+.lba-kpi--purple {
+    border-inline-start-color: #7c3aed;
+}
+
+.lba-kpi--amber {
+    border-inline-start-color: #d97706;
+}
+
+.lba-kpi .fi-wi-stats-overview-stat-label-ctn .fi-icon {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+}
+
+.lba-kpi--blue .fi-wi-stats-overview-stat-label-ctn .fi-icon {
+    color: #2563eb;
+}
+
+.lba-kpi--teal .fi-wi-stats-overview-stat-label-ctn .fi-icon {
+    color: #087f80;
+}
+
+.lba-kpi--purple .fi-wi-stats-overview-stat-label-ctn .fi-icon {
+    color: #7c3aed;
+}
+
+.lba-kpi--amber .fi-wi-stats-overview-stat-label-ctn .fi-icon {
+    color: #d97706;
+}
+
+/* Filament renders every widget section as a grid, so its header and content
+   wrapper are grid items that default to `min-width: auto`. A widget whose
+   intrinsic min-content is wider than the phone viewport (the KPI stat card's
+   sparkline chart is the usual driver) then refuses to shrink below that
+   min-content, pushing `/principal` into a ~640px horizontal scroll at 390px.
+   Letting both wrappers shrink to the track keeps the dashboard free of
+   horizontal scroll on phones while the KPI grid still collapses to one
+   column (see the `$columns = ['default' => 1, ...]` in the stats widget). */
+.fi-section-header,
+.fi-section-content-ctn {
+    min-width: 0;
+}

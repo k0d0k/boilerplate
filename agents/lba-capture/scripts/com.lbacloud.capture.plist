@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LBA Capture Agent — macOS launchd agent (TEMPLATE).
+
+  Install (per-user):
+    1. replace every REPLACE_ME below with your macOS short username (`whoami`);
+    2. copy this file to ~/Library/LaunchAgents/com.lbacloud.capture.plist
+    3. run scripts/install-macos.command once to create the venv
+    4. launchctl load -w ~/Library/LaunchAgents/com.lbacloud.capture.plist
+
+  It runs one scan/upload cycle every 60 seconds via `run-once`, which is
+  resilient to sleep/offline periods because the on-disk spool persists.
+  launchd does not expand `~` in Standard*Path keys, hence the absolute paths.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.lbacloud.capture</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>-lc</string>
+      <string>"$HOME/Library/Application Support/LBACapture/venv/bin/lba-capture" run-once</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/REPLACE_ME/Library/Application Support/LBACapture/logs/launchd.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/REPLACE_ME/Library/Application Support/LBACapture/logs/launchd.err.log</string>
+  </dict>
+</plist>

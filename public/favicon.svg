@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="LBA Cloud">
+    <rect width="32" height="32" rx="7" fill="#14263D" />
+    <path d="M16 5.2 25.2 10.3v11.4L16 26.8 6.8 21.7V10.3L16 5.2Z" fill="none" stroke="#7FE3E0" stroke-width="1.7" stroke-linejoin="round" />
+    <circle cx="16" cy="16" r="3.8" fill="#087F80" />
+</svg>

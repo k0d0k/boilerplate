@@ -1,0 +1,1491 @@
+openapi: 3.0.3
+info:
+  title: LBA Cloud — Patient REST API
+  version: 1.0.0
+  description: |
+    Minimal mobile-integration contract for the patient portal (Phase 8B).
+
+    Authentication is a clinic-scoped bearer token issued by
+    `POST /api/v1/patient/login` (or re-scoped by `POST /clinics/select`).
+    Every authenticated call is bound to exactly ONE clinic taken from the
+    token — a `clinic_id` sent by the client is never trusted as authority.
+
+    Success responses use `{ data, meta? }`; every failure uses
+    `{ error: { code, message, details? } }`.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Clinics
+  - name: Profile
+  - name: Directory
+  - name: Appointments
+  - name: Reports
+  - name: Consultations
+  - name: Wallet
+
+paths:
+  /api/v1/patient/login:
+    post:
+      tags: [Auth]
+      summary: Exchange credentials for a clinic-scoped bearer token
+      security: []
+      description: |
+        Rate limited per IP. When the account holds several eligible clinics and
+        no `clinic_id` is supplied, the response asks for an explicit choice and
+        no token is issued.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                clinic_id: { type: string, nullable: true }
+                device_name: { type: string, maxLength: 80, nullable: true }
+      responses:
+        '200':
+          description: Token issued, or an explicit clinic selection is required.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          requires_clinic_selection: { type: boolean }
+                          token: { type: string, nullable: true }
+                          token_type: { type: string, example: Bearer }
+                          expires_at: { type: string, format: date-time, nullable: true }
+                          clinic: { $ref: '#/components/schemas/Clinic' }
+                          clinics:
+                            type: array
+                            items: { $ref: '#/components/schemas/Clinic' }
+              examples:
+                token_issued:
+                  summary: A clinic-bound token is issued (single or explicit choice)
+                  value:
+                    data:
+                      requires_clinic_selection: false
+                      token: 7f3c1b9a2d4e8f0a6c5b7e9d1a3f2c4e6b8d0a2c4e6f8a0b2d4c6e8f0a2b4d6c
+                      token_type: Bearer
+                      expires_at: '2026-12-15T04:20:11+00:00'
+                      clinic: { id: '01J8Z3P0ABCDEFGHJKMNPQRSTV', name: 'Klinik Sehat Cabang Pusat', brand: 'LBA Partners' }
+                      clinics:
+                        - { id: '01J8Z3P0ABCDEFGHJKMNPQRSTV', name: 'Klinik Sehat Cabang Pusat', brand: 'LBA Partners' }
+                clinic_selection_required:
+                  summary: Several eligible clinics — the client must choose one (no token)
+                  value:
+                    data:
+                      requires_clinic_selection: true
+                      clinics:
+                        - { id: '01J8Z3P0ABCDEFGHJKMNPQRSTV', name: 'Klinik Sehat Cabang Pusat', brand: 'LBA Partners' }
+                        - { id: '01J8Z3P1WXYZ0123456789ABCD', name: 'Klinik Sehat Cabang Timur', brand: 'LBA Partners' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/v1/patient/me:
+    get:
+      tags: [Auth]
+      summary: The authenticated account, its bound clinic and patient record
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          account: { type: object }
+                          clinic: { $ref: '#/components/schemas/Clinic' }
+                          patient: { $ref: '#/components/schemas/Patient' }
+              examples:
+                identity:
+                  value:
+                    data:
+                      account: { id: '01J8Z3N7ACCOUNT0000000001', name: 'Siti Rahma', email: 'siti.rahma@example.test', locale: id }
+                      clinic: { id: '01J8Z3P0ABCDEFGHJKMNPQRSTV', name: 'Klinik Sehat Cabang Pusat', brand: 'LBA Partners' }
+                      patient:
+                        patient_number: P-2026-000123
+                        full_name: Siti Rahma
+                        date_of_birth: '1991-04-18'
+                        sex: female
+                        gender: female
+                        phone: '+62 812-0000-0000'
+                        email: siti.rahma@example.test
+                        address: Jalan Melati No. 12
+                        city: Jakarta
+                        region: DKI Jakarta
+                        country: ID
+                        registered_branch_id: '01J8Z3Q1BRANCH00000000001'
+                        status: active
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/patient/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current bearer token
+      responses:
+        '200': { description: Revoked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/patient/clinics:
+    get:
+      tags: [Clinics]
+      summary: List the clinics the account may act in
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Clinic' }
+                      meta:
+                        type: object
+                        properties:
+                          current_clinic_id: { type: string, nullable: true }
+              examples:
+                eligible_clinics:
+                  summary: Two eligible clinics, the first currently bound
+                  value:
+                    data:
+                      - { id: '01J8Z3P0ABCDEFGHJKMNPQRSTV', name: 'Klinik Sehat Cabang Pusat', brand: 'LBA Partners' }
+                      - { id: '01J8Z3P1WXYZ0123456789ABCD', name: 'Klinik Sehat Cabang Timur', brand: 'LBA Partners' }
+                    meta:
+                      current_clinic_id: '01J8Z3P0ABCDEFGHJKMNPQRSTV'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/patient/clinics/select:
+    post:
+      tags: [Clinics]
+      summary: Exchange the current token for one bound to another clinic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clinic_id]
+              properties:
+                clinic_id: { type: string }
+                device_name: { type: string, maxLength: 80, nullable: true }
+      responses:
+        '200':
+          description: New token issued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token: { type: string }
+                          token_type: { type: string, example: Bearer }
+                          expires_at: { type: string, format: date-time, nullable: true }
+              examples:
+                reselected:
+                  value:
+                    data:
+                      token: 9a1c3e5f7b2d4a6c8e0f1a3b5d7c9e1f3a5b7d9c1e3f5a7b9d1c3e5f7a9b1d3c
+                      token_type: Bearer
+                      expires_at: '2026-12-15T04:25:02+00:00'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/profile:
+    get:
+      tags: [Profile]
+      summary: The acting patient's own record
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Patient' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [Profile]
+      summary: Update self-service contact fields (clinical fields are read-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: { type: string, nullable: true }
+                email: { type: string, format: email, nullable: true }
+                address: { type: string, nullable: true }
+                city: { type: string, nullable: true }
+                region: { type: string, nullable: true }
+                country: { type: string, nullable: true, minLength: 2, maxLength: 2 }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Patient' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/directory/brands:
+    get:
+      tags: [Directory]
+      summary: Brands legitimately linked to the bound clinic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            name: { type: string }
+                            slug: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/patient/directory/branches:
+    get:
+      tags: [Directory]
+      summary: Active branches of the bound clinic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Branch' }
+              examples:
+                clinic_locations:
+                  summary: Two active locations of the bound clinic
+                  value:
+                    data:
+                      - id: '01J8Z3Q1BRANCH00000000001'
+                        name: Klinik Sehat Cabang Pusat
+                        code: PUSAT
+                        location_type: permanent
+                        address: Jalan Melati No. 12
+                        city: Jakarta
+                        region: DKI Jakarta
+                        country: ID
+                        phone: '+62 21 555-0001'
+                        email: pusat@example.test
+                        status: active
+                        timezone: Asia/Jakarta
+                        operates_from: null
+                        operates_until: null
+                        opens_at: '08:00'
+                        closes_at: '17:00'
+                        slot_minutes: 30
+                        capacity: 2
+                      - id: '01J8Z3Q2BRANCH00000000002'
+                        name: Klinik Sehat Cabang Timur
+                        code: TIMUR
+                        location_type: permanent
+                        address: Jalan Kenanga No. 4
+                        city: Bekasi
+                        region: Jawa Barat
+                        country: ID
+                        phone: '+62 21 555-0002'
+                        email: timur@example.test
+                        status: active
+                        timezone: Asia/Jakarta
+                        operates_from: null
+                        operates_until: null
+                        opens_at: '09:00'
+                        closes_at: '16:00'
+                        slot_minutes: 30
+                        capacity: null
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/patient/directory/branches/{branch}:
+    get:
+      tags: [Directory]
+      summary: One active branch of the bound clinic
+      parameters:
+        - $ref: '#/components/parameters/BranchId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Branch' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/patient/directory/branches/{branch}/availability:
+    get:
+      tags: [Directory]
+      summary: Bookable slots of one branch on one day
+      description: |
+        Computed from the branch's own scheduling rules (operating window, slot
+        length and capacity) and the appointments that already occupy a slot.
+        Read-only: booking still runs through the scheduler's conflict guards.
+        An inactive branch, or one outside its temporary/event window, returns
+        an empty list.
+      parameters:
+        - $ref: '#/components/parameters/BranchId'
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/AvailabilitySlot' }
+                      meta:
+                        type: object
+                        properties:
+                          branch:
+                            type: object
+                            properties:
+                              id: { type: string }
+                              name: { type: string }
+                          date: { type: string, format: date }
+                          slot_minutes: { type: integer }
+              examples:
+                bookable_slots:
+                  summary: Morning slots for one day at one location
+                  value:
+                    data:
+                      - { starts_at: '2026-11-16T08:00:00+07:00', ends_at: '2026-11-16T08:30:00+07:00', available: true, remaining: 2, capacity: 2 }
+                      - { starts_at: '2026-11-16T08:30:00+07:00', ends_at: '2026-11-16T09:00:00+07:00', available: true, remaining: 1, capacity: 2 }
+                      - { starts_at: '2026-11-16T09:00:00+07:00', ends_at: '2026-11-16T09:30:00+07:00', available: false, remaining: 0, capacity: 2 }
+                    meta:
+                      branch: { id: '01J8Z3Q1BRANCH00000000001', name: 'Klinik Sehat Cabang Pusat' }
+                      date: '2026-11-16'
+                      slot_minutes: 30
+                closed_day:
+                  summary: A day outside the operating window yields no slots
+                  value:
+                    data: []
+                    meta:
+                      branch: { id: '01J8Z3Q1BRANCH00000000001', name: 'Klinik Sehat Cabang Pusat' }
+                      date: '2026-11-22'
+                      slot_minutes: 30
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/appointments:
+    get:
+      tags: [Appointments]
+      summary: The acting patient's own appointment history (paginated)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, confirmed, checked_in, completed, cancelled, no_show]
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedEnvelope' }
+              examples:
+                own_history:
+                  summary: One own appointment, newest first
+                  value:
+                    data:
+                      - id: '01J8Z3R5APPT00000000000001'
+                        status: scheduled
+                        service_type: consultation
+                        starts_at: '2026-11-16T09:00:00+07:00'
+                        ends_at: '2026-11-16T09:30:00+07:00'
+                        branch: { id: '01J8Z3Q1BRANCH00000000001', name: 'Klinik Sehat Cabang Pusat' }
+                        notes: null
+                        can_cancel: true
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 1, last_page: 1 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Appointments]
+      summary: Book an appointment for the acting patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_id, starts_at, service_type]
+              properties:
+                branch_id: { type: string }
+                starts_at: { type: string, format: date-time }
+                service_type:
+                  type: string
+                  enum: [consultation, lba_exam, follow_up, other]
+                notes: { type: string, maxLength: 500, nullable: true }
+            examples:
+              book_consultation:
+                value:
+                  branch_id: '01J8Z3Q1BRANCH00000000001'
+                  starts_at: '2026-11-16T09:00:00+07:00'
+                  service_type: consultation
+                  notes: Konsultasi hasil pemeriksaan terakhir.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Appointment' }
+              examples:
+                booked:
+                  value:
+                    data:
+                      id: '01J8Z3R5APPT00000000000001'
+                      status: scheduled
+                      service_type: consultation
+                      starts_at: '2026-11-16T09:00:00+07:00'
+                      ends_at: '2026-11-16T09:30:00+07:00'
+                      branch: { id: '01J8Z3Q1BRANCH00000000001', name: 'Klinik Sehat Cabang Pusat' }
+                      notes: Konsultasi hasil pemeriksaan terakhir.
+                      can_cancel: true
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/v1/patient/appointments/{appointment}:
+    get:
+      tags: [Appointments]
+      summary: One of the acting patient's own appointments
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Appointment' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/patient/appointments/{appointment}/cancel:
+    post:
+      tags: [Appointments]
+      summary: Cancel one of the acting patient's own appointments
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Appointment' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/patient/appointments/{appointment}/reschedule:
+    post:
+      tags: [Appointments]
+      summary: Reschedule one of the acting patient's own appointments
+      description: |
+        Moves the appointment to a new slot, re-validating it through the same
+        scheduler the clinic uses (tenant-local patient/branch, open location
+        window and branch capacity). A terminal appointment (completed,
+        cancelled, no-show) can never be rescheduled.
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [starts_at]
+              properties:
+                starts_at: { type: string, format: date-time }
+                service_type:
+                  type: string
+                  enum: [consultation, lba_exam, follow_up, other]
+      responses:
+        '200':
+          description: Rescheduled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Appointment' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/reports:
+    get:
+      tags: [Reports]
+      summary: The acting patient's approved AND explicitly released reports (paginated)
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedEnvelope' }
+              examples:
+                released_reports:
+                  summary: One released report with its private PDF download URL
+                  value:
+                    data:
+                      - id: '01J8Z3S9REPORT0000000000001'
+                        version: '2'
+                        branch: Klinik Sehat Cabang Pusat
+                        released_at: '2026-11-14T10:05:00+07:00'
+                        generated_at: '2026-11-14T09:40:00+07:00'
+                        filename: LBA-P-2026-000123-v2.pdf
+                        download_url: https://lba.example.test/api/v1/patient/reports/01J8Z3S9REPORT0000000000001/download
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 1, last_page: 1 }
+                nothing_released:
+                  summary: No approved + released report yet
+                  value:
+                    data: []
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 0, last_page: 1 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/patient/reports/{report}/download:
+    get:
+      tags: [Reports]
+      summary: Download the private PDF of one released report
+      description: |
+        Fails closed (404) unless the version is approved, explicitly released,
+        belongs to the acting patient, and its checksum verifies. Each download
+        is appended to the report audit trail.
+
+        The response body is the raw PDF bytes (`application/pdf`, sent as an
+        attachment), NOT a JSON envelope: stream the response to a file rather
+        than parsing it as JSON. The report's `filename` is available from
+        `GET /reports`.
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: The private PDF stream (binary attachment)
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              example: attachment; filename="LBA-P-2026-000123-v2.pdf"
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/v1/patient/consultations:
+    get:
+      tags: [Consultations]
+      summary: The acting patient's own consultations (paginated, newest first)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled, no_show]
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedEnvelope' }
+              examples:
+                own_history:
+                  summary: One own consultation with its informed tariff and refund terms
+                  value:
+                    data:
+                      - id: '01J8Z3C1CONSULT00000000001'
+                        status: scheduled
+                        channel: in_person
+                        type: consultation
+                        scheduled_at: '2026-11-16T10:00:00+07:00'
+                        started_at: null
+                        ended_at: null
+                        reason: Konsultasi hasil pemeriksaan.
+                        summary: null
+                        branch: { id: '01J8Z3Q1BRANCH00000000001', name: 'Klinik Sehat Cabang Pusat' }
+                        practitioner: { id: '01J8Z3P2PRACT000000000001', name: 'dr. Synthetic, Sp.A' }
+                        appointment: { id: '01J8Z3APT00000000000000001', starts_at: '2026-11-16T10:00:00+07:00', ends_at: '2026-11-16T10:30:00+07:00' }
+                        can_chat: false
+                        tariff: { amount: '200000.00', currency: IDR }
+                        refund: { cancellable_before_start: true, refundable: false }
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 1, last_page: 1 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Consultations]
+      summary: Book a human expert consultation for the acting patient
+      description: |
+        Books an in-person or teleconsult session at one ACTIVE branch of the
+        bound clinic. `patient_id` is always forced to the acting identity's own
+        record, so a client can never book for someone else. SINA chat is NOT
+        accepted here — it is started through the SINA endpoints. The disclosed
+        tariff and refund terms are returned with the created record.
+
+        `practitioner_id` is OPTIONAL. When it is set, the named practitioner
+        must be verified and authorized for the branch AND the requested time
+        must fall inside their own practice schedule (leave, branch capacity and
+        double-booking all honoured) — otherwise the booking is refused with a
+        `409` and a stable code (`unknown_practitioner`, `practitioner_unavailable`,
+        `slot_unavailable`, `branch_not_open`, `branch_at_capacity`,
+        `invalid_time_range`, `staff_not_eligible`). Leaving it unset keeps the
+        legacy "clinic assigns" behaviour.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_id, channel, scheduled_at]
+              properties:
+                branch_id: { type: string }
+                channel: { type: string, enum: [in_person, teleconsult] }
+                type: { type: string, enum: [consultation, follow_up, lba_review], nullable: true }
+                scheduled_at: { type: string, format: date-time, description: Must be in the future }
+                reason: { type: string, maxLength: 500, nullable: true }
+                practitioner_id:
+                  type: string
+                  nullable: true
+                  description: >
+                    Optional. A verified practitioner bookable at the branch; the
+                    requested time must fall inside their own schedule. Omit to
+                    let the clinic assign one.
+            examples:
+              book_in_person:
+                value:
+                  branch_id: '01J8Z3Q1BRANCH00000000001'
+                  channel: in_person
+                  type: consultation
+                  scheduled_at: '2026-11-16T10:00:00+07:00'
+                  reason: Konsultasi hasil pemeriksaan terakhir.
+              book_with_practitioner:
+                value:
+                  branch_id: '01J8Z3Q1BRANCH00000000001'
+                  channel: in_person
+                  scheduled_at: '2026-11-16T10:00:00+07:00'
+                  practitioner_id: '01J8Z3P2PRACT000000000001'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Consultation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/consultations/{consultation}:
+    get:
+      tags: [Consultations]
+      summary: One of the acting patient's own consultations
+      parameters:
+        - $ref: '#/components/parameters/ConsultationId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Consultation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/patient/consultations/{consultation}/messages:
+    get:
+      tags: [Consultations]
+      summary: The transcript of one of the acting patient's own consultations (paginated)
+      parameters:
+        - $ref: '#/components/parameters/ConsultationId'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedEnvelope' }
+              examples:
+                transcript:
+                  summary: A grounded SINA reply with validated citations
+                  value:
+                    data:
+                      - id: '01J8Z3M1MESSAGE000000000001'
+                        role: patient
+                        content: Saya merasa lelah.
+                        provider: null
+                        model: null
+                        created_at: '2026-11-15T04:19:58+00:00'
+                        grounded: false
+                        citations: []
+                      - id: '01J8Z3M2MESSAGE000000000002'
+                        role: assistant
+                        content: 'Istirahat cukup dapat membantu. [S1]'
+                        provider: openai_compatible
+                        model: gpt-4o-mini
+                        created_at: '2026-11-15T04:20:11+00:00'
+                        grounded: true
+                        citations:
+                          - document_id: '01J8Z3K0DOC00000000000001'
+                            version: 3
+                            page: 12
+                            title: Panduan Gaya Hidup Sehat
+                            published_on: '2026-06-01'
+                            url: https://lba.example.test/api/v1/patient/knowledge/documents/01J8Z3K0DOC00000000000001/versions/3/pages/12
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 2, last_page: 1 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/patient/consultations/{consultation}/cancel:
+    post:
+      tags: [Consultations]
+      summary: Cancel one of the acting patient's own not-yet-started consultations
+      description: |
+        Refused outright (409 `not_cancellable`) when the clinic's policy does
+        not allow cancellation before the session, when the session has already
+        started, or when the lifecycle does not admit the transition. The
+        transition runs through the same manager the clinic uses.
+      parameters:
+        - $ref: '#/components/parameters/ConsultationId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 500, nullable: true }
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Consultation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /api/v1/patient/sina:
+    get:
+      tags: [Consultations]
+      summary: The acting patient's SINA state (consent, fee, session, transcript, wallet)
+      description: |
+        Exposes the same SINA session the patient portal renders: the recorded
+        `ai_assistance` consent, the disclosed per-turn fee unit, the OWN active
+        session (if any), its transcript and the patient's own credit balance.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SinaOverview' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/patient/sina/consent:
+    post:
+      tags: [Consultations]
+      summary: Record the patient's explicit AI-assistance consent
+      description: |
+        A SINA turn is impossible without this explicit, un-withdrawn consent.
+        Idempotent: recording it again returns the existing consent.
+      responses:
+        '201':
+          description: Consent recorded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [consent, consent_id]
+                        properties:
+                          consent: { type: boolean, example: true }
+                          consent_id: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/patient/sina/session:
+    post:
+      tags: [Consultations]
+      summary: Start (or return the existing) SINA chat session
+      description: |
+        Consent is required first (409 `consent_required`). Starting twice
+        returns the SAME running session (idempotent) so a retry never opens a
+        parallel session.
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Consultation' }
+        '200':
+          description: An active session already exists and is returned as-is
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Consultation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/patient/sina/messages:
+    post:
+      tags: [Consultations]
+      summary: Run one SINA patient turn against the active session
+      description: |
+        Reserves, captures and releases credits through the CENTRAL SINA wallet
+        (when billing is on) so a failed turn never leaves an orphan transcript
+        row or a stranded reservation.
+
+        `turn_reference` is an OPTIONAL client idempotency key. A client that
+        retries after a dropped response sends the SAME value: the reply already
+        stored for the turn is replayed and NOTHING is charged again — no second
+        provider call and no second transcript row. Omitting it makes the server
+        generate a unique key, so every such request is a distinct turn.
+
+        A retrieval or provider failure releases the reservation and marks the
+        turn failed, so a later retry with the SAME reference is processed and
+        billed exactly once. A reference reused with DIFFERENT content is
+        rejected (409 `turn_reference_conflict`), and a duplicate that arrives
+        while the first is still running is refused (409 `turn_in_progress`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, maxLength: 2000 }
+                turn_reference: { type: string, maxLength: 80, nullable: true, description: Optional idempotency key for retried turns }
+            examples:
+              turn:
+                value:
+                  content: Apakah saya perlu istirahat?
+                  turn_reference: client-turn-1
+      responses:
+        '200':
+          description: Turn completed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SinaTurnResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '402':
+          description: The patient's wallet cannot fund the turn
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+              examples:
+                insufficient_credits:
+                  value:
+                    error: { code: insufficient_credits, message: 'Insufficient SINA credits for this turn.' }
+        '409':
+          description: The turn reference is reused with different content or is already in flight
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+              examples:
+                turn_reference_conflict:
+                  value:
+                    error: { code: turn_reference_conflict, message: 'This turn reference was already used with different content.' }
+                turn_in_progress:
+                  value:
+                    error: { code: turn_in_progress, message: 'A turn with this reference is already being processed.' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '503':
+          description: The configured AI provider is unavailable
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+              examples:
+                provider_unavailable:
+                  value:
+                    error: { code: provider_unavailable, message: 'The SINA provider is unavailable.' }
+
+  /api/v1/patient/wallet:
+    get:
+      tags: [Wallet]
+      summary: Read the acting patient's SINA credit balance and usage totals
+      description: |
+        Uses the active clinic from the patient token and requires `wallet.own`.
+        These are the very same figures the patient portal's "Dompet Token"
+        page renders for the same clinic + patient.
+      responses:
+        '200':
+          description: Current wallet and totals
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/WalletSummary' }
+              examples:
+                funded:
+                  summary: Patient with credits and one settled SINA turn
+                  value:
+                    data:
+                      wallet:
+                        balance_credits: 104
+                        reserved_credits: 0
+                        lifetime_consumed_credits: 13
+                        currency: sina_credit
+                        status: active
+                      usage_total_credits: 13
+                      usage_turns: 1
+                never_used:
+                  summary: Patient who has never held a wallet (all zeroes)
+                  value:
+                    data:
+                      wallet:
+                        balance_credits: 0
+                        reserved_credits: 0
+                        lifetime_consumed_credits: 0
+                        currency: sina_credit
+                        status: active
+                      usage_total_credits: 0
+                      usage_turns: 0
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/v1/patient/wallet/usage:
+    get:
+      tags: [Wallet]
+      summary: List the acting patient's SINA credit usage, most recent first
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Paginated usage history for the patient and active clinic
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedEnvelope' }
+              examples:
+                one_turn:
+                  summary: A single settled SINA turn
+                  value:
+                    data:
+                      - id: '01J8Z3T2USAGE00000000000001'
+                        consultation_id: '01J8Z3P0ABCDEFGHJKMNPQRSTV'
+                        provider: openai_compatible
+                        model: gpt-4o-mini
+                        prompt_tokens: 812
+                        completion_tokens: 344
+                        credit_units: 13
+                        recorded_at: '2026-11-15T04:20:11+00:00'
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 1, last_page: 1 }
+                empty:
+                  summary: No usage yet
+                  value:
+                    data: []
+                    meta:
+                      pagination: { page: 1, per_page: 15, total: 0, last_page: 1 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+
+  parameters:
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 15 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    BranchId:
+      name: branch
+      in: path
+      required: true
+      schema: { type: string }
+    AppointmentId:
+      name: appointment
+      in: path
+      required: true
+      schema: { type: string }
+    ReportId:
+      name: report
+      in: path
+      required: true
+      schema: { type: string }
+    ConsultationId:
+      name: consultation
+      in: path
+      required: true
+      schema: { type: string }
+
+  schemas:
+    SuccessEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: {}
+        meta: { type: object }
+    PaginatedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            meta:
+              type: object
+              properties:
+                pagination:
+                  type: object
+                  properties:
+                    page: { type: integer }
+                    per_page: { type: integer }
+                    total: { type: integer }
+                    last_page: { type: integer }
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - invalid_credentials
+                - unauthenticated
+                - forbidden
+                - no_clinic
+                - invalid_clinic
+                - not_found
+                - validation_error
+                - booking_conflict
+                - invalid_transition
+                - not_cancellable
+                - consent_required
+                - no_active_session
+                - no_branch
+                - insufficient_credits
+                - wallet_missing
+                - provider_unavailable
+                - provider_not_configured
+                - too_many_requests
+                - server_error
+            message: { type: string }
+            details: { type: object }
+    Clinic:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        brand: { type: string, nullable: true }
+    Branch:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        code: { type: string, nullable: true }
+        location_type:
+          type: string
+          enum: [permanent, temporary, event]
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        region: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        status: { type: string }
+        timezone: { type: string, nullable: true }
+        operates_from: { type: string, format: date-time, nullable: true }
+        operates_until: { type: string, format: date-time, nullable: true }
+        opens_at: { type: string, nullable: true, description: 'HH:MM in the branch timezone' }
+        closes_at: { type: string, nullable: true, description: 'HH:MM in the branch timezone' }
+        slot_minutes: { type: integer, description: 'Resolved slot length (falls back to the platform default)' }
+        capacity: { type: integer, nullable: true, description: 'Max overlapping occupying appointments; null = unlimited' }
+    AvailabilitySlot:
+      type: object
+      properties:
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        available: { type: boolean }
+        remaining: { type: integer, nullable: true }
+        capacity: { type: integer, nullable: true }
+    Patient:
+      type: object
+      nullable: true
+      properties:
+        patient_number: { type: string, nullable: true }
+        full_name: { type: string }
+        date_of_birth: { type: string, format: date, nullable: true }
+        sex: { type: string, nullable: true }
+        gender: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        region: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+        registered_branch_id: { type: string, nullable: true }
+        status: { type: string }
+    Appointment:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string }
+        service_type: { type: string }
+        starts_at: { type: string, format: date-time, nullable: true }
+        ends_at: { type: string, format: date-time, nullable: true }
+        branch:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            name: { type: string }
+        notes: { type: string, nullable: true }
+        can_cancel: { type: boolean }
+    Consultation:
+      type: object
+      required: [id, status, channel, type]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [scheduled, in_progress, completed, cancelled, no_show] }
+        channel: { type: string, enum: [in_person, sina_chat, teleconsult] }
+        type: { type: string, enum: [consultation, follow_up, lba_review] }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        started_at: { type: string, format: date-time, nullable: true }
+        ended_at: { type: string, format: date-time, nullable: true }
+        reason: { type: string, nullable: true }
+        summary: { type: string, nullable: true }
+        branch:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            name: { type: string }
+        practitioner:
+          type: object
+          nullable: true
+          description: 'The assigned practitioner, when one is on the roster; null for a clinic-assigned or SINA session'
+          properties:
+            id: { type: string }
+            name: { type: string }
+        appointment:
+          type: object
+          nullable: true
+          description: 'The appointment reserving the slot; present for a practitioner-backed booking'
+          properties:
+            id: { type: string }
+            starts_at: { type: string, format: date-time, nullable: true }
+            ends_at: { type: string, format: date-time, nullable: true }
+        can_chat: { type: boolean, description: 'True only for an active SINA chat session' }
+        tariff:
+          type: object
+          nullable: true
+          description: 'The configured tariff, or null when the clinic has not priced the channel (never fabricated)'
+          properties:
+            amount: { type: string }
+            currency: { type: string }
+        refund:
+          type: object
+          properties:
+            cancellable_before_start: { type: boolean }
+            refundable: { type: boolean }
+    ConsultationMessage:
+      type: object
+      required: [id, role, content, created_at]
+      properties:
+        id: { type: string }
+        role: { type: string, enum: [patient, assistant, staff] }
+        content: { type: string }
+        provider: { type: string, nullable: true }
+        model: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        grounded: { type: boolean, description: 'True when the reply is backed by approved clinic knowledge' }
+        citations:
+          type: array
+          items:
+            type: object
+            properties:
+              document_id: { type: string }
+              version: { type: integer }
+              page: { type: integer }
+              title: { type: string }
+              published_on: { type: string, format: date, nullable: true }
+              url: { type: string }
+    Report:
+      type: object
+      properties:
+        id: { type: string }
+        version: { type: string }
+        branch: { type: string, nullable: true }
+        released_at: { type: string, format: date-time, nullable: true }
+        generated_at: { type: string, format: date-time, nullable: true }
+        filename: { type: string }
+        download_url: { type: string }
+    SinaFee:
+      type: object
+      description: 'The disclosed SINA per-turn fee unit (never fabricated)'
+      properties:
+        billing_enabled: { type: boolean }
+        credits_per_turn: { type: integer, minimum: 0, description: 'Credits reserved around one turn' }
+        credits_per_1k_tokens: { type: integer, minimum: 0 }
+        currency: { type: string, example: sina_credit }
+    SinaOverview:
+      type: object
+      required: [consent, fee, session, messages, wallet]
+      properties:
+        consent: { type: boolean, description: 'True when the ai_assistance consent is recorded and un-withdrawn' }
+        fee: { $ref: '#/components/schemas/SinaFee' }
+        session: { allOf: [{ $ref: '#/components/schemas/Consultation' }], nullable: true }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/ConsultationMessage' }
+        wallet: { allOf: [{ $ref: '#/components/schemas/Wallet' }], nullable: true }
+    SinaTurnResult:
+      type: object
+      required: [session, reply, wallet]
+      properties:
+        session: { $ref: '#/components/schemas/Consultation' }
+        reply: { $ref: '#/components/schemas/ConsultationMessage' }
+        wallet: { allOf: [{ $ref: '#/components/schemas/Wallet' }], nullable: true }
+    Wallet:
+      type: object
+      required: [balance_credits, reserved_credits, lifetime_consumed_credits, currency, status]
+      properties:
+        balance_credits: { type: integer, minimum: 0, description: 'Available SINA credits' }
+        reserved_credits: { type: integer, minimum: 0, description: 'Credits held by an in-flight turn' }
+        lifetime_consumed_credits: { type: integer, minimum: 0, description: 'Credits captured over the wallet''s lifetime' }
+        currency: { type: string, example: sina_credit }
+        status: { type: string, enum: [active, suspended] }
+    WalletSummary:
+      type: object
+      required: [wallet, usage_total_credits, usage_turns]
+      properties:
+        wallet: { $ref: '#/components/schemas/Wallet' }
+        usage_total_credits: { type: integer, minimum: 0, description: 'Sum of captured credit units for this clinic + patient' }
+        usage_turns: { type: integer, minimum: 0, description: 'Number of settled SINA turns for this clinic + patient' }
+    WalletUsage:
+      type: object
+      required: [id, consultation_id, provider, credit_units, recorded_at]
+      properties:
+        id: { type: string }
+        consultation_id: { type: string }
+        provider: { type: string, example: openai_compatible }
+        model: { type: string, nullable: true }
+        prompt_tokens: { type: integer, minimum: 0 }
+        completion_tokens: { type: integer, minimum: 0 }
+        credit_units: { type: integer, minimum: 0 }
+        recorded_at: { type: string, format: date-time }
+
+  responses:
+    Unauthorized:
+      description: Missing, invalid, expired or revoked token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            unauthenticated:
+              value:
+                error: { code: unauthenticated, message: 'Unauthenticated.' }
+    Forbidden:
+      description: The action is not permitted for this account
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            forbidden:
+              value:
+                error: { code: forbidden, message: 'This action is unauthorized.' }
+    NotFound:
+      description: The resource does not exist (or is not visible to this account)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            not_found:
+              value:
+                error: { code: not_found, message: 'Resource not found.' }
+    ValidationError:
+      description: The request failed validation
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            validation_error:
+              value:
+                error:
+                  code: validation_error
+                  message: 'The given data was invalid.'
+                  details: { starts_at: ['The starts at field must be a date after now.'] }
+    Conflict:
+      description: The request conflicts with the current state
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            booking_conflict:
+              value:
+                error: { code: booking_conflict, message: 'That slot is no longer available.' }
+            invalid_transition:
+              value:
+                error: { code: invalid_transition, message: 'This appointment can no longer be changed.' }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            too_many_requests:
+              value:
+                error: { code: too_many_requests, message: 'Too many attempts. Please try again later.' }
+    ServerError:
+      description: An unexpected server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+          examples:
+            server_error:
+              value:
+                error: { code: server_error, message: 'Something went wrong.' }

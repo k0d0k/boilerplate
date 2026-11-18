@@ -1,0 +1,10 @@
+<?php
+
+namespace App\Platform\Crud\Generated;
+
+final class BrandCrud
+{
+    public const OPTIONS = [
+{{ options }}
+    ];
+}

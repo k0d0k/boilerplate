@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lba-capture"
+version = "1.0.0"
+description = "LBA Cloud microscope export-folder capture agent (Windows / macOS)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = []
+
+[project.optional-dependencies]
+# OS secure storage for the ingest bearer credential. Strongly recommended;
+# without it the agent falls back to a 0600 file in the user's config dir.
+secure = ["keyring>=24"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+lba-capture = "lba_capture.cli:main"
+
+[tool.setuptools]
+packages = ["lba_capture"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
